@@ -49,7 +49,7 @@ Rules: grammarPoints 2-3개, examTags 3-5개, tokens은 교정 문장의 모든 
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 3000,
+        max_tokens: 4000,
         system: SYSTEM,
         messages: [{ role: 'user', content: input.trim() }],
       }),
@@ -62,15 +62,31 @@ Rules: grammarPoints 2-3개, examTags 3-5개, tokens은 교정 문장의 모든 
 
     const data = await response.json();
     const raw = (data.content || []).map((c) => c.text || '').join('');
-    const clean = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    // JSON 블록 추출
+    let jsonStr = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    // 중괄호 기준으로 JSON 범위 찾기
+    const start = jsonStr.indexOf('{');
+    const end = jsonStr.lastIndexOf('}');
+    if (start !== -1 && end !== -1) {
+      jsonStr = jsonStr.slice(start, end + 1);
+    }
 
     let result;
     try {
-      result = JSON.parse(clean);
+      result = JSON.parse(jsonStr);
     } catch {
-      const m = clean.match(/\{[\s\S]*\}/);
-      if (m) result = JSON.parse(m[0]);
-      else throw new Error('JSON 파싱 실패');
+      // dialogues 등 배열이 잘린 경우 복구 시도
+      try {
+        const fixed = jsonStr
+          .replace(/,\s*$/, '')        // 끝 쉼표 제거
+          .replace(/\}\s*$/, '}}')     // 닫힘 괄호 보완
+          .replace(/\]\s*\}?\s*$/, ']}'); // 배열 닫힘 보완
+        result = JSON.parse(fixed);
+      } catch {
+        return res.status(500).json({ error: '응답 파싱 실패. 다시 시도해 주세요.' });
+      }
     }
 
     return res.status(200).json(result);

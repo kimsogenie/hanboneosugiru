@@ -195,16 +195,12 @@ export default function Home() {
       </Head>
 
       <div className="desktop">
-        <div className="icon-rail">
-          <div className="retro-icon"><div className="art">🧃</div>오늘의 표현</div>
-          <div className="retro-icon"><div className="art">📝</div>문법 포인트</div>
-          <div className="retro-icon"><div className="art">💾</div>저장함</div>
-        </div>
-        <div className="icon-right">
-          <div className="retro-icon"><div className="art">🗣️</div>미니 대화</div>
-          <div className="retro-icon"><div className="art">🎧</div>음성 듣기</div>
-          <div className="retro-icon"><div className="art">🏷️</div>JLPT 태그</div>
-        </div>
+        <div className="star s1" />
+        <div className="star s2" />
+        <div className="star s3" />
+        <div className="star s4" />
+        <div className="star s5" />
+        <div className="star s6" />
 
         <div className="window-wrap">
           <div className="window">
@@ -215,7 +211,7 @@ export default function Home() {
                 <span className="light" style={{ background: '#efd8d8' }}></span>
               </div>
               <div className="title-text">한본어스기루 AI.exe</div>
-              <div style={{ fontSize: 12, fontWeight: 700 }}>Claude API 연결</div>
+              <div />
             </div>
 
             <div className="window-body">
@@ -223,10 +219,13 @@ export default function Home() {
               <aside className="side-panel">
                 <div className="pixel-card brand-card">
                   <div>
-                    <div style={{ fontSize: 52, textAlign: 'center', margin: '12px 0 8px' }}>🖥️</div>
-                    <h2 className="brand-title">한본어스기루</h2>
-                    <p className="brand-sub">
-                      한본어를 교정하고, 핵심 문법과 JLPT 태그까지 붙여서 시험 감각으로 이어지게 만드는 AI 학습 창.
+                    <img
+                      src="/%EB%8B%A8%EB%9D%BD%20%ED%85%8D%EC%8A%A4%ED%8A%B8%20(1).png"
+                      alt="한본어스기루"
+                      style={{ width: '100%', borderRadius: 8, display: 'block' }}
+                    />
+                    <p className="brand-sub" style={{ marginTop: 12 }}>
+                      입 밖으로 나온 한본어, 진짜 일본어가 될 때까지.
                     </p>
                   </div>
                   <div style={{ marginTop: 12 }}>
@@ -234,41 +233,8 @@ export default function Home() {
                     <span className="chip">문법</span>
                     <span className="chip jlpt">JLPT</span>
                     <span className="chip">미니 대화</span>
-                    <span className="chip">TTS</span>
+                    <span className="chip">리스닝</span>
                   </div>
-                </div>
-
-                <div className="pixel-card">
-                  <strong>이런 입력이 좋아요</strong>
-                  <ul className="hint-list">
-                    {SAMPLES.map((s, i) => <li key={i}>{s}</li>)}
-                  </ul>
-                </div>
-
-                <div className="pixel-card">
-                  <strong style={{ display: 'block', marginBottom: 8 }}>내가 저장한 것들</strong>
-                  <span className="muted">{saved.length}개 저장됨</span>
-                  <div style={{ marginTop: 10, maxHeight: 280, overflowY: 'auto' }}>
-                    {saved.length === 0 ? (
-                      <div className="empty">아직 저장된 표현이 없어요.</div>
-                    ) : (
-                      saved.map((item, i) => (
-                        <div className="saved-item" key={i}>
-                          <div className="jp" style={{ fontSize: 15 }}>{item.corrected}</div>
-                          <div className="muted">{item.hiragana}</div>
-                          <div className="muted">원문: {item.originalInput || '-'}</div>
-                          <div style={{ marginTop: 5 }}>
-                            {(item.examTags || []).slice(0, 3).map((t, j) => <Chip key={j} text={t} />)}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  {saved.length > 0 && (
-                    <button className="tertiary" style={{ marginTop: 10, width: '100%' }} onClick={clearSaved}>
-                      전체 삭제
-                    </button>
-                  )}
                 </div>
               </aside>
 
@@ -302,11 +268,6 @@ export default function Home() {
                       <button className="primary" onClick={analyze} disabled={loading}>
                         {loading ? '분석 중...' : '교정 시작'}
                       </button>
-                      {SAMPLES.slice(0, 4).map((s, i) => (
-                        <button key={i} className="secondary" onClick={() => setInput(s)}>
-                          예시 {i + 1}
-                        </button>
-                      ))}
                       <button className="tertiary" onClick={() => setInput('')}>입력 지우기</button>
                     </div>
                   </div>
@@ -315,7 +276,7 @@ export default function Home() {
                 {/* 로딩 */}
                 {loading && (
                   <div className="pixel-card loading-wrap">
-                    <div className="muted">Claude가 분석 중이에요...</div>
+                    <div className="muted">분석 중이에요...</div>
                     <div className="loading-dots">
                       <span /><span /><span />
                     </div>

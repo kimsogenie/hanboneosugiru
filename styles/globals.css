@@ -446,14 +446,29 @@ details[open] summary { border-bottom: 2px solid var(--line); }
 }
 .dock-item.active { background: var(--accent2); }
 
+/* ── 별 꾸밈 ── */
+.star {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  opacity: 0.5;
+}
+.s1 { width: 38px; height: 38px; background: #b8d9f0; top: 6%; left: 3%; transform: rotate(12deg); }
+.s2 { width: 26px; height: 26px; background: #f0c8c8; top: 14%; left: 6%; transform: rotate(-8deg); }
+.s3 { width: 44px; height: 44px; background: #c8e8d8; top: 5%; right: 4%; transform: rotate(20deg); }
+.s4 { width: 30px; height: 30px; background: #e8d8c0; top: 18%; right: 7%; transform: rotate(-15deg); }
+.s5 { width: 22px; height: 22px; background: #d0c8f0; top: 30%; left: 2%; transform: rotate(5deg); }
+.s6 { width: 34px; height: 34px; background: #f0e0b8; top: 28%; right: 3%; transform: rotate(-20deg); }
+
 /* ── 반응형 ── */
 @media (max-width: 980px) {
   .window-body { grid-template-columns: 1fr; }
-  .icon-rail, .icon-right { display: none; }
 }
 @media (max-width: 760px) {
   .desktop { padding: 12px; }
   .hero, .result-head, .grid-2, .grid-3, .input-grid { grid-template-columns: 1fr; }
   .hero { flex-direction: column; }
   .value { font-size: 16px; }
+  .star { display: none; }
 }
