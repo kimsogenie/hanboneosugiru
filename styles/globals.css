@@ -87,7 +87,7 @@ body {
   border: 2px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--shadow);
-  overflow: visible;
+  overflow: hidden;
   width: 100%;
 }
 
@@ -493,12 +493,14 @@ details[open] summary { border-bottom: 2px solid var(--line); }
   background: linear-gradient(135deg, #d7edf2, #e8f5ea);
   border: 2px solid var(--line);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px 16px;
   text-align: center;
   box-shadow: var(--shadow);
+  overflow: hidden;
+  width: 100%;
 }
 .answer-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #4a7a5a;
   letter-spacing: 1px;
@@ -506,18 +508,38 @@ details[open] summary { border-bottom: 2px solid var(--line); }
   text-transform: uppercase;
 }
 .answer-text {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--ink);
   word-break: break-all;
   overflow-wrap: break-word;
+  margin-bottom: 8px;
+}
+.answer-line {
+  font-size: 13px;
+  color: #5a7060;
+  line-height: 1.8;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+.answer-translation {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3a5a4a;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(47,44,40,.2);
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 .answer-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #5a7060;
-  margin-top: 8px;
+  margin-top: 4px;
   line-height: 1.6;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* ── 별 꾸밈 ── */

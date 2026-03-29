@@ -222,6 +222,7 @@ export default function Home() {
     <>
       <Head>
         <title>한본어스기루 AI</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
       <div className="desktop">
@@ -324,7 +325,11 @@ export default function Home() {
                     <div className="answer-box">
                       <div className="answer-label">✦ 이렇게 말하세요</div>
                       <div className="answer-text">{result.corrected}</div>
-                      <div className="answer-sub">{result.hiragana} · {result.koreanPron}</div>
+                      <div className="answer-line">{result.hiragana}</div>
+                      <div className="answer-line">{result.koreanPron}</div>
+                      {result.koreanTranslation && (
+                        <div className="answer-translation">{result.koreanTranslation}</div>
+                      )}
                       <div className="speak-row" style={{ justifyContent: 'center', marginTop: 12 }}>
                         <SpeakBtn text={result.corrected} label="🔊 발음 듣기" />
                       </div>

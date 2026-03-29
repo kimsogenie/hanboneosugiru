@@ -17,6 +17,7 @@ Required JSON structure:
   "corrected": "correct natural Japanese sentence",
   "hiragana": "hiragana reading with spaces between words",
   "koreanPron": "Korean pronunciation guide (e.g. 카이센 와 타베마센)",
+  "koreanTranslation": "자연스러운 한국어 번역 1문장",
   "status": "short status in Korean (e.g. '해산물 관련 한본어 감지 완료')",
   "summary": ["correction point 1 in Korean", "correction point 2", "correction point 3"],
   "grammarPoints": [
