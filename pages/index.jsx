@@ -425,13 +425,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="footer-dock">
-          <div className="dock-item active">🖥️</div>
-          <div className="dock-item">📘</div>
-          <div className="dock-item">🏷️</div>
-          <div className="dock-item">🗣️</div>
-          <div className="dock-item">💾</div>
-        </div>
+
       </div>
 
       <div className={`toast${showToast ? ' show' : ''}`}>{toast}</div>
