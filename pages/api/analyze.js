@@ -48,7 +48,7 @@ Rules: grammarPoints 2-3개, examTags 3-5개, tokens은 교정 문장의 모든 
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20251022',
+        model: 'claude-sonnet-4-6',
         max_tokens: 5000,
         system: SYSTEM,
         messages: [{ role: 'user', content: input.trim() }],
