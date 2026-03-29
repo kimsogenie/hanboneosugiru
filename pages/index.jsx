@@ -34,32 +34,43 @@ function SpeakBtn({ text, label = '🔊 듣기' }) {
   );
 }
 
-function TokenList({ tokens }) {
+function TokenList({ tokens, maxVisible }) {
   if (!tokens?.length) return <div className="empty">단어 정보가 없어요.</div>;
+  const visible = maxVisible ? tokens.slice(0, maxVisible) : tokens;
+  const rest = maxVisible ? tokens.slice(maxVisible) : [];
+  const [showAll, setShowAll] = useState(false);
+  const displayed = showAll ? tokens : visible;
   return (
-    <>
-      {tokens.map((t, i) => (
-        <div className="token" key={i}>
-          <div className="token-head">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {t.emoji && <span style={{ fontSize: 22 }}>{t.emoji}</span>}
-              <div>
-                <div className="jp">{t.jp}</div>
-                <div className="muted">{t.hira} · {t.kr}</div>
+    <div className="token-scroll-wrap">
+      <div className="token-scroll">
+        {displayed.map((t, i) => (
+          <div className="token token-card" key={i}>
+            <div className="token-head">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {t.emoji && <span style={{ fontSize: 22 }}>{t.emoji}</span>}
+                <div>
+                  <div className="jp">{t.jp}</div>
+                  <div className="muted">{t.hira} · {t.kr}</div>
+                </div>
               </div>
+              <span className="chip">{t.meaning}</span>
             </div>
-            <span className="chip">{t.meaning}</span>
+            {t.commonForm && (
+              <div style={{ marginTop: 6, fontSize: 12, background: '#f0f7e8', border: '1.5px solid #b8d9a0', borderRadius: 7, padding: '5px 10px', color: '#3a6020' }}>
+                현지 표기 <strong>{t.commonForm}</strong>
+              </div>
+            )}
+            {t.note && <div className="tiny" style={{ marginTop: 4 }}>{t.note}</div>}
+            <div className="speak-row"><SpeakBtn text={t.jp} /></div>
           </div>
-          {t.commonForm && (
-            <div style={{ marginTop: 6, fontSize: 12, background: '#f0f7e8', border: '1.5px solid #b8d9a0', borderRadius: 7, padding: '5px 10px', color: '#3a6020' }}>
-              현지 표기 <strong>{t.commonForm}</strong>
-            </div>
-          )}
-          {t.note && <div className="tiny" style={{ marginTop: 4 }}>{t.note}</div>}
-          <div className="speak-row"><SpeakBtn text={t.jp} /></div>
-        </div>
-      ))}
-    </>
+        ))}
+        {!showAll && rest.length > 0 && (
+          <div className="token token-card token-more" onClick={() => setShowAll(true)}>
+            <div style={{ fontSize: 13, color: '#888', textAlign: 'center', paddingTop: 8 }}>+{rest.length}개 더보기</div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -94,6 +105,15 @@ function ExprItem({ item, categoryLabel }) {
   );
 }
 
+const ROLE_EMOJI = {
+  A: '🙋', B: '🧑‍💼', C: '👨‍🍳', D: '👩‍🏫',
+  '손님': '🙋', '종업원': '🧑‍💼', '점원': '🧑‍💼', '선생님': '👩‍🏫', '학생': '📚',
+};
+function getRoleEmoji(who) {
+  if (ROLE_EMOJI[who]) return ROLE_EMOJI[who];
+  return who?.length <= 2 ? '💬' : '🙋';
+}
+
 function DialogueItem({ dialogue }) {
   const allJp = (dialogue.turns || []).map((t) => t.jp).join(' ');
   return (
@@ -108,7 +128,9 @@ function DialogueItem({ dialogue }) {
         </div>
         {(dialogue.turns || []).map((turn, i) => (
           <div className="dialogue-turn" key={i}>
-            <div className="avatar">{turn.who}</div>
+            <div className="avatar" style={{ fontSize: 16, background: 'transparent', border: 'none' }}>
+              {getRoleEmoji(turn.who)}
+            </div>
             <div>
               <div className="turn-jp">{turn.jp}</div>
               <div className="turn-sub">{turn.hira} · {turn.kr}</div>
@@ -255,14 +277,12 @@ export default function Home() {
                       히라가나와 한국어 발음은 물론, 핵심 문법 구조까지 실시간으로 교정해 드립니다. 내가 뱉은 단어로 학습해야 진짜 내 실력이 됩니다.
                     </p>
                   </div>
-                  <div className="badge">AI 교정 + 시험 태그</div>
                 </section>
 
                 {/* 입력 */}
                 <section className="pixel-card">
                   <div className="section-title">
                     <h2>입력</h2>
-                    <span className="muted">예시 버튼으로 바로 테스트</span>
                   </div>
                   <div className="input-grid">
                     <textarea
@@ -345,8 +365,18 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* 문법 + 태그 */}
-                    <div className="grid-3">
+                    {/* 시험 태그 (상단 가로) */}
+                    {result.examTags?.length > 0 && (
+                      <div className="pixel-card" style={{ padding: '10px 14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#888', marginRight: 4 }}>JLPT · 빈출</span>
+                          {result.examTags.map((t, i) => <Chip key={i} text={t} />)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 문법 + 단어 */}
+                    <div className="grid-2">
                       <div className="pixel-card">
                         <div className="section-title"><h2>핵심 문법</h2><span className="muted">뼈대</span></div>
                         {result.grammarPoints?.length ? result.grammarPoints.map((g, i) => (
@@ -360,13 +390,8 @@ export default function Home() {
                       </div>
 
                       <div className="pixel-card">
-                        <div className="section-title"><h2>시험 태그</h2><span className="muted">JLPT · 빈출</span></div>
-                        {result.examTags?.length ? result.examTags.map((t, i) => <Chip key={i} text={t} />) : '-'}
-                      </div>
-
-                      <div className="pixel-card">
                         <div className="section-title"><h2>단어별 쪼개기</h2><span className="muted">왜 이렇게?</span></div>
-                        <TokenList tokens={result.tokens} />
+                        <TokenList tokens={result.tokens} maxVisible={result.grammarPoints?.length || 3} />
                       </div>
                     </div>
 
@@ -393,14 +418,6 @@ export default function Home() {
                         {result.dialogues.map((dl, i) => <DialogueItem key={i} dialogue={dl} />)}
                       </div>
                     )}
-
-                    {/* 저장 */}
-                    <div className="pixel-card">
-                      <div className="section-title"><h2>저장</h2><span className="muted">브라우저 로컬 저장</span></div>
-                      <div className="save-toolbar">
-                        <button className="secondary" onClick={saveResult}>이 결과 저장하기</button>
-                      </div>
-                    </div>
                   </div>
                 )}
               </main>
