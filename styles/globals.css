@@ -78,7 +78,8 @@ body {
   position: relative;
   z-index: 1;
   max-width: 1180px;
-  margin: 36px auto 0;
+  width: 100%;
+  margin: 24px auto 0;
 }
 
 .window {
@@ -86,7 +87,8 @@ body {
   border: 2px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: visible;
+  width: 100%;
 }
 
 .titlebar {
@@ -244,9 +246,9 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 .label { font-size: 11px; color: #605952; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
-.value { font-size: 19px; line-height: 1.35; word-break: keep-all; }
-.value.sm { font-size: 14px; }
-.muted { color: #665f57; font-size: 13px; line-height: 1.5; }
+.value { font-size: 19px; line-height: 1.4; word-break: break-all; overflow-wrap: break-word; }
+.value.sm { font-size: 14px; word-break: break-all; overflow-wrap: break-word; }
+.muted { color: #665f57; font-size: 13px; line-height: 1.5; word-break: break-all; overflow-wrap: break-word; }
 .tiny { color: #665f57; font-size: 12px; line-height: 1.5; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -536,13 +538,29 @@ details[open] summary { border-bottom: 2px solid var(--line); }
 /* ── 반응형 ── */
 @media (max-width: 980px) {
   .window-body { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
 }
+
 @media (max-width: 760px) {
-  .desktop { padding: 12px; }
-  .hero, .result-head, .grid-2, .grid-3, .input-grid { grid-template-columns: 1fr; }
+  .desktop { padding: 8px; }
+  .window-wrap { margin: 8px auto 0; }
+  .window { border-radius: 12px; }
+  .window-body { padding: 12px; gap: 12px; }
   .hero { flex-direction: column; }
-  .value { font-size: 16px; }
-  .answer-text { font-size: 20px; }
-  .answer-box { padding: 16px; }
+  .hero h1 { font-size: 18px; }
+  .hero p { font-size: 12px; }
+  .result-head { grid-template-columns: 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .input-grid { grid-template-columns: 1fr; }
+  .button-stack { flex-direction: row; flex-wrap: wrap; }
+  .button-stack button { flex: 1; min-width: 120px; }
+  .value { font-size: 15px; }
+  .answer-text { font-size: 18px; }
+  .answer-box { padding: 14px; }
+  .answer-sub { font-size: 12px; word-break: break-all; overflow-wrap: break-word; }
   .star { display: none; }
+  .pixel-card { padding: 12px; }
+  .jp { font-size: 15px; }
+  summary { font-size: 12px; }
+  .turn-jp { font-size: 13px; }
 }
