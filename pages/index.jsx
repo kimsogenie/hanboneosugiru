@@ -41,12 +41,20 @@ function TokenList({ tokens }) {
       {tokens.map((t, i) => (
         <div className="token" key={i}>
           <div className="token-head">
-            <div>
-              <div className="jp">{t.jp}</div>
-              <div className="muted">{t.hira} · {t.kr}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {t.emoji && <span style={{ fontSize: 22 }}>{t.emoji}</span>}
+              <div>
+                <div className="jp">{t.jp}</div>
+                <div className="muted">{t.hira} · {t.kr}</div>
+              </div>
             </div>
             <span className="chip">{t.meaning}</span>
           </div>
+          {t.commonForm && (
+            <div style={{ marginTop: 6, fontSize: 12, background: '#f0f7e8', border: '1.5px solid #b8d9a0', borderRadius: 7, padding: '5px 10px', color: '#3a6020' }}>
+              현지 표기 <strong>{t.commonForm}</strong>
+            </div>
+          )}
           {t.note && <div className="tiny" style={{ marginTop: 4 }}>{t.note}</div>}
           <div className="speak-row"><SpeakBtn text={t.jp} /></div>
         </div>
@@ -210,7 +218,7 @@ export default function Home() {
                 <span className="light" style={{ background: '#d8e9df' }}></span>
                 <span className="light" style={{ background: '#efd8d8' }}></span>
               </div>
-              <div className="title-text">한본어스기루 AI.exe</div>
+              <div className="title-text">한본어스기루</div>
               <div />
             </div>
 
@@ -242,10 +250,9 @@ export default function Home() {
               <main className="main-panel">
                 <section className="hero">
                   <div>
-                    <h1>한본어를 일본어답게, 시험답게.</h1>
+                    <h1>말하고 싶은 그대로 입력하면 공부가 시작됩니다.</h1>
                     <p>
-                      정답 문장, 히라가나, 한국 발음, 단어별 설명, 비슷한 표현, 상황별 표현, 미니 대화에 더해
-                      핵심 문법과 JLPT 빈출 태그까지 붙입니다. AI가 자유 문장을 전부 처리해요.
+                      히라가나와 한국어 발음은 물론, 핵심 문법 구조까지 실시간으로 교정해 드립니다. 내가 뱉은 단어로 학습해야 진짜 내 실력이 됩니다.
                     </p>
                   </div>
                   <div className="badge">AI 교정 + 시험 태그</div>
@@ -293,6 +300,16 @@ export default function Home() {
                 {/* 결과 */}
                 {result && (
                   <div className="results">
+                    {/* 강조 박스 */}
+                    <div className="answer-box">
+                      <div className="answer-label">✦ 이렇게 말하세요</div>
+                      <div className="answer-text">{result.corrected}</div>
+                      <div className="answer-sub">{result.hiragana} · {result.koreanPron}</div>
+                      <div className="speak-row" style={{ justifyContent: 'center', marginTop: 12 }}>
+                        <SpeakBtn text={result.corrected} label="🔊 발음 듣기" />
+                      </div>
+                    </div>
+
                     {/* 교정 결과 */}
                     <div className="pixel-card">
                       <div className="section-title">

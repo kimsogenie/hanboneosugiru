@@ -24,7 +24,7 @@ Required JSON structure:
   ],
   "examTags": ["JLPT N5", "부정형", "식당 회화 빈출"],
   "tokens": [
-    {"jp": "word", "hira": "hiragana", "kr": "pronunciation", "meaning": "Korean meaning", "note": "usage note in Korean"}
+    {"jp": "word", "hira": "hiragana", "kr": "pronunciation", "meaning": "Korean meaning", "note": "usage note in Korean", "emoji": "단어 뜻을 나타내는 이모지 1개 (조사/접속사는 생략)", "commonForm": "현지인이 가장 많이 쓰는 표기 (한자/가나/카타카나 중 하나, 교정 문장과 동일하면 생략)"}
   ],
   "similar": [
     {"title": "Japanese", "hira": "hiragana", "kr": "pronunciation", "nuance": "Korean nuance", "examTags": ["JLPT N5"], "breakdown": [{"jp":"","hira":"","kr":"","meaning":""}]}

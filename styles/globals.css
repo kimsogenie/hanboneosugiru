@@ -446,6 +446,37 @@ details[open] summary { border-bottom: 2px solid var(--line); }
 }
 .dock-item.active { background: var(--accent2); }
 
+/* ── 강조 박스 ── */
+.answer-box {
+  background: linear-gradient(135deg, #d7edf2, #e8f5ea);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.answer-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a7a5a;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.answer-text {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.answer-sub {
+  font-size: 14px;
+  color: #5a7060;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
 /* ── 별 꾸밈 ── */
 .star {
   position: absolute;
