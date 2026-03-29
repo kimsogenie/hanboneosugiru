@@ -222,7 +222,7 @@ export default function Home() {
     <>
       <Head>
         <title>한본어스기루 AI</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="desktop">
