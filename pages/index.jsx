@@ -1,0 +1,445 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import Head from 'next/head';
+
+const SAMPLES = [
+  '해산물 와 타베마센',
+  '와타시 배 고파요',
+  '나 오늘 피곤데스',
+  '문네가 아파',
+  '스미마센 이거 얼마예요',
+];
+
+function Chip({ text }) {
+  const isJlpt = text.includes('JLPT');
+  const cls = isJlpt ? 'chip jlpt' : 'chip tag';
+  return <span className={cls}>{text}</span>;
+}
+
+function SpeakBtn({ text, label = '🔊 듣기' }) {
+  const speak = () => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const voices = window.speechSynthesis.getVoices();
+    const jpVoice = voices.find((v) => v.lang && v.lang.includes('ja'));
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP';
+    u.rate = 0.85;
+    if (jpVoice) u.voice = jpVoice;
+    window.speechSynthesis.speak(u);
+  };
+  return (
+    <button className="speak-btn" onClick={speak}>
+      {label}
+    </button>
+  );
+}
+
+function TokenList({ tokens }) {
+  if (!tokens?.length) return <div className="empty">단어 정보가 없어요.</div>;
+  return (
+    <>
+      {tokens.map((t, i) => (
+        <div className="token" key={i}>
+          <div className="token-head">
+            <div>
+              <div className="jp">{t.jp}</div>
+              <div className="muted">{t.hira} · {t.kr}</div>
+            </div>
+            <span className="chip">{t.meaning}</span>
+          </div>
+          {t.note && <div className="tiny" style={{ marginTop: 4 }}>{t.note}</div>}
+          <div className="speak-row"><SpeakBtn text={t.jp} /></div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ExprItem({ item, categoryLabel }) {
+  return (
+    <details>
+      <summary>
+        <span>{item.title}</span>
+        <span className="muted">{categoryLabel || item.nuance || item.label || ''}</span>
+      </summary>
+      <div className="details-body">
+        <div className="jp">{item.title}</div>
+        <div className="muted" style={{ marginTop: 2 }}>{item.hira} · {item.kr}</div>
+        {item.nuance && <div className="muted" style={{ marginTop: 4 }}>{item.nuance}</div>}
+        <div style={{ marginTop: 6 }}>
+          {(item.examTags || []).map((t, i) => <Chip key={i} text={t} />)}
+        </div>
+        <div className="speak-row"><SpeakBtn text={item.title} /></div>
+        {(item.breakdown || []).map((b, i) => (
+          <div className="token" key={i} style={{ marginTop: 8 }}>
+            <div className="token-head">
+              <div>
+                <div className="jp">{b.jp}</div>
+                <div className="muted">{b.hira} · {b.kr}</div>
+              </div>
+              <span className="chip">{b.meaning}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function DialogueItem({ dialogue }) {
+  const allJp = (dialogue.turns || []).map((t) => t.jp).join(' ');
+  return (
+    <details open>
+      <summary>
+        <span>{dialogue.title}</span>
+        <span className="muted">대화 {dialogue.turns?.length || 0}턴</span>
+      </summary>
+      <div className="details-body">
+        <div className="speak-row">
+          <SpeakBtn text={allJp} label="🔊 대화 전체 듣기" />
+        </div>
+        {(dialogue.turns || []).map((turn, i) => (
+          <div className="dialogue-turn" key={i}>
+            <div className="avatar">{turn.who}</div>
+            <div>
+              <div className="turn-jp">{turn.jp}</div>
+              <div className="turn-sub">{turn.hira} · {turn.kr}</div>
+              <div className="turn-sub">{turn.ko}</div>
+              <div className="speak-row"><SpeakBtn text={turn.jp} /></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+export default function Home() {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [saved, setSaved] = useState([]);
+  const toastTimer = useRef(null);
+
+  useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('hbsAI_v1') || '[]');
+      setSaved(s);
+    } catch {}
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+  }, []);
+
+  const showToastMsg = useCallback((msg) => {
+    setToast(msg);
+    setShowToast(true);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setShowToast(false), 2200);
+  }, []);
+
+  const persistSaved = (items) => {
+    setSaved(items);
+    localStorage.setItem('hbsAI_v1', JSON.stringify(items));
+  };
+
+  const saveResult = () => {
+    if (!result) { showToastMsg('먼저 교정해 주세요.'); return; }
+    const item = {
+      ...result,
+      originalInput: input.trim(),
+      savedAt: new Date().toLocaleString('ko-KR'),
+    };
+    const next = [item, ...saved];
+    persistSaved(next);
+    showToastMsg('저장 완료!');
+  };
+
+  const clearSaved = () => {
+    if (confirm('저장 목록을 전부 지울까요?')) {
+      persistSaved([]);
+      showToastMsg('삭제했어요.');
+    }
+  };
+
+  const analyze = async () => {
+    const txt = input.trim();
+    if (!txt) { showToastMsg('문장을 입력해 주세요.'); return; }
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: txt }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `서버 오류 ${res.status}`);
+      setResult(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>한본어스기루 AI</title>
+      </Head>
+
+      <div className="desktop">
+        <div className="icon-rail">
+          <div className="retro-icon"><div className="art">🧃</div>오늘의 표현</div>
+          <div className="retro-icon"><div className="art">📝</div>문법 포인트</div>
+          <div className="retro-icon"><div className="art">💾</div>저장함</div>
+        </div>
+        <div className="icon-right">
+          <div className="retro-icon"><div className="art">🗣️</div>미니 대화</div>
+          <div className="retro-icon"><div className="art">🎧</div>음성 듣기</div>
+          <div className="retro-icon"><div className="art">🏷️</div>JLPT 태그</div>
+        </div>
+
+        <div className="window-wrap">
+          <div className="window">
+            <div className="titlebar">
+              <div className="lights">
+                <span className="light"></span>
+                <span className="light" style={{ background: '#d8e9df' }}></span>
+                <span className="light" style={{ background: '#efd8d8' }}></span>
+              </div>
+              <div className="title-text">한본어스기루 AI.exe</div>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>Claude API 연결</div>
+            </div>
+
+            <div className="window-body">
+              {/* 사이드바 */}
+              <aside className="side-panel">
+                <div className="pixel-card brand-card">
+                  <div>
+                    <div style={{ fontSize: 52, textAlign: 'center', margin: '12px 0 8px' }}>🖥️</div>
+                    <h2 className="brand-title">한본어스기루</h2>
+                    <p className="brand-sub">
+                      한본어를 교정하고, 핵심 문법과 JLPT 태그까지 붙여서 시험 감각으로 이어지게 만드는 AI 학습 창.
+                    </p>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <span className="chip">교정</span>
+                    <span className="chip">문법</span>
+                    <span className="chip jlpt">JLPT</span>
+                    <span className="chip">미니 대화</span>
+                    <span className="chip">TTS</span>
+                  </div>
+                </div>
+
+                <div className="pixel-card">
+                  <strong>이런 입력이 좋아요</strong>
+                  <ul className="hint-list">
+                    {SAMPLES.map((s, i) => <li key={i}>{s}</li>)}
+                  </ul>
+                </div>
+
+                <div className="pixel-card">
+                  <strong style={{ display: 'block', marginBottom: 8 }}>내가 저장한 것들</strong>
+                  <span className="muted">{saved.length}개 저장됨</span>
+                  <div style={{ marginTop: 10, maxHeight: 280, overflowY: 'auto' }}>
+                    {saved.length === 0 ? (
+                      <div className="empty">아직 저장된 표현이 없어요.</div>
+                    ) : (
+                      saved.map((item, i) => (
+                        <div className="saved-item" key={i}>
+                          <div className="jp" style={{ fontSize: 15 }}>{item.corrected}</div>
+                          <div className="muted">{item.hiragana}</div>
+                          <div className="muted">원문: {item.originalInput || '-'}</div>
+                          <div style={{ marginTop: 5 }}>
+                            {(item.examTags || []).slice(0, 3).map((t, j) => <Chip key={j} text={t} />)}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {saved.length > 0 && (
+                    <button className="tertiary" style={{ marginTop: 10, width: '100%' }} onClick={clearSaved}>
+                      전체 삭제
+                    </button>
+                  )}
+                </div>
+              </aside>
+
+              {/* 메인 */}
+              <main className="main-panel">
+                <section className="hero">
+                  <div>
+                    <h1>한본어를 일본어답게, 시험답게.</h1>
+                    <p>
+                      정답 문장, 히라가나, 한국 발음, 단어별 설명, 비슷한 표현, 상황별 표현, 미니 대화에 더해
+                      핵심 문법과 JLPT 빈출 태그까지 붙입니다. AI가 자유 문장을 전부 처리해요.
+                    </p>
+                  </div>
+                  <div className="badge">AI 교정 + 시험 태그</div>
+                </section>
+
+                {/* 입력 */}
+                <section className="pixel-card">
+                  <div className="section-title">
+                    <h2>입력</h2>
+                    <span className="muted">예시 버튼으로 바로 테스트</span>
+                  </div>
+                  <div className="input-grid">
+                    <textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) analyze(); }}
+                      placeholder={'예: 해산물 와 타베마센\n예: 와타시 배 고파요\n예: 스미마센 이거 얼마예요'}
+                    />
+                    <div className="button-stack">
+                      <button className="primary" onClick={analyze} disabled={loading}>
+                        {loading ? '분석 중...' : '교정 시작'}
+                      </button>
+                      {SAMPLES.slice(0, 4).map((s, i) => (
+                        <button key={i} className="secondary" onClick={() => setInput(s)}>
+                          예시 {i + 1}
+                        </button>
+                      ))}
+                      <button className="tertiary" onClick={() => setInput('')}>입력 지우기</button>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 로딩 */}
+                {loading && (
+                  <div className="pixel-card loading-wrap">
+                    <div className="muted">Claude가 분석 중이에요...</div>
+                    <div className="loading-dots">
+                      <span /><span /><span />
+                    </div>
+                  </div>
+                )}
+
+                {/* 에러 */}
+                {error && (
+                  <div className="error-box">
+                    오류가 발생했어요: {error}<br />잠시 후 다시 시도해 주세요.
+                  </div>
+                )}
+
+                {/* 결과 */}
+                {result && (
+                  <div className="results">
+                    {/* 교정 결과 */}
+                    <div className="pixel-card">
+                      <div className="section-title">
+                        <h2>교정 결과</h2>
+                        <span className="muted">{result.status}</span>
+                      </div>
+                      <div className="result-head">
+                        <div className="result-box">
+                          <div className="label">정답 표현</div>
+                          <div className="value">{result.corrected}</div>
+                          <div className="speak-row"><SpeakBtn text={result.corrected} label="🔊 문장 듣기" /></div>
+                        </div>
+                        <div className="result-box">
+                          <div className="label">히라가나</div>
+                          <div className="value sm">{result.hiragana}</div>
+                        </div>
+                        <div className="result-box">
+                          <div className="label">한국 발음</div>
+                          <div className="value sm">{result.koreanPron}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 교정 요약 */}
+                    {result.summary?.length > 0 && (
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>한 줄 교정 요약</h2></div>
+                        {result.summary.map((s, i) => (
+                          <div key={i} className="muted" style={{ padding: '6px 0', borderBottom: '1px dashed rgba(47,44,40,.2)', lineHeight: 1.7 }}>
+                            {s}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 문법 + 태그 */}
+                    <div className="grid-3">
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>핵심 문법</h2><span className="muted">뼈대</span></div>
+                        {result.grammarPoints?.length ? result.grammarPoints.map((g, i) => (
+                          <div className="grammar-item" key={i}>
+                            <div className="grammar-title">
+                              {g.title} <span className="chip grammar">{g.level}</span>
+                            </div>
+                            <div className="grammar-desc">{g.desc}</div>
+                          </div>
+                        )) : <div className="empty">문법 포인트 없음</div>}
+                      </div>
+
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>시험 태그</h2><span className="muted">JLPT · 빈출</span></div>
+                        {result.examTags?.length ? result.examTags.map((t, i) => <Chip key={i} text={t} />) : '-'}
+                      </div>
+
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>단어별 쪼개기</h2><span className="muted">왜 이렇게?</span></div>
+                        <TokenList tokens={result.tokens} />
+                      </div>
+                    </div>
+
+                    {/* 비슷한 / 상황별 */}
+                    <div className="grid-2">
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>비슷한 표현</h2><span className="muted">눌러서 쪼개보기</span></div>
+                        {result.similar?.length
+                          ? result.similar.map((item, i) => <ExprItem key={i} item={item} categoryLabel="비슷한 말" />)
+                          : <div className="empty">비슷한 표현 없음</div>}
+                      </div>
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>상황별 표현</h2><span className="muted">식당 / 친구 / 정중</span></div>
+                        {result.situational?.length
+                          ? result.situational.map((item, i) => <ExprItem key={i} item={item} categoryLabel={item.label} />)
+                          : <div className="empty">상황별 표현 없음</div>}
+                      </div>
+                    </div>
+
+                    {/* 미니 대화 */}
+                    {result.dialogues?.length > 0 && (
+                      <div className="pixel-card">
+                        <div className="section-title"><h2>미니 대화</h2><span className="muted">실전 사용 상황</span></div>
+                        {result.dialogues.map((dl, i) => <DialogueItem key={i} dialogue={dl} />)}
+                      </div>
+                    )}
+
+                    {/* 저장 */}
+                    <div className="pixel-card">
+                      <div className="section-title"><h2>저장</h2><span className="muted">브라우저 로컬 저장</span></div>
+                      <div className="save-toolbar">
+                        <button className="secondary" onClick={saveResult}>이 결과 저장하기</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </main>
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-dock">
+          <div className="dock-item active">🖥️</div>
+          <div className="dock-item">📘</div>
+          <div className="dock-item">🏷️</div>
+          <div className="dock-item">🗣️</div>
+          <div className="dock-item">💾</div>
+        </div>
+      </div>
+
+      <div className={`toast${showToast ? ' show' : ''}`}>{toast}</div>
+    </>
+  );
+}
