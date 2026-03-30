@@ -13,6 +13,13 @@ export default function Document() {
         />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon-192.png" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-YJDJJVTGGY"></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-YJDJJVTGGY');
+        `}} />
       </Head>
       <body>
         <Main />
