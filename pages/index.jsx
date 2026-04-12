@@ -110,6 +110,77 @@ function SpeakBtn({ text, label = '🔊 듣기' }) {
   return <button className="speak-btn" onClick={speak}>{label}</button>;
 }
 
+// ── 자동 학습 버튼 (전체 문장 → 단어+뜻 반복) ──
+function AutoLearnBtn({ result }) {
+  const [playing, setPlaying] = useState(false);
+  const stopRef = useRef(false);
+
+  const stop = () => {
+    stopRef.current = true;
+    window.speechSynthesis?.cancel();
+    setPlaying(false);
+  };
+
+  const play = () => {
+    if (!window.speechSynthesis || !result) return;
+    stopRef.current = false;
+    setPlaying(true);
+
+    const tokens = (result.tokens || []).filter(t => t.jp && t.meaning);
+
+    const speakUtterance = (text, lang, rate = 0.85) =>
+      new Promise((resolve) => {
+        if (stopRef.current) return resolve();
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.lang?.includes(lang === 'ja-JP' ? 'ja' : 'ko'));
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang;
+        u.rate = rate;
+        if (voice) u.voice = voice;
+        u.onend = resolve;
+        u.onerror = resolve;
+        window.speechSynthesis.speak(u);
+      });
+
+    const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const runLoop = async () => {
+      while (!stopRef.current) {
+        // 전체 문장 (일본어)
+        await speakUtterance(result.corrected, 'ja-JP', 0.8);
+        await pause(600);
+        // 단어별: 일본어 → 한국어 뜻
+        for (const token of tokens) {
+          if (stopRef.current) break;
+          await speakUtterance(token.jp, 'ja-JP', 0.8);
+          await pause(250);
+          if (stopRef.current) break;
+          await speakUtterance(token.meaning, 'ko-KR', 1.0);
+          await pause(450);
+        }
+        if (stopRef.current) break;
+        await pause(400);
+        // 전체 문장 한 번 더
+        await speakUtterance(result.corrected, 'ja-JP', 0.85);
+        await pause(1800);
+      }
+      setPlaying(false);
+    };
+
+    runLoop();
+  };
+
+  if (!result?.corrected) return null;
+  return playing ? (
+    <button className="speak-btn" onClick={stop}
+      style={{ background: '#fdf0f0', borderColor: '#f0b8b8', color: '#a03030' }}>
+      ⏹ 정지
+    </button>
+  ) : (
+    <button className="speak-btn" onClick={play}>🔁 자동 학습</button>
+  );
+}
+
 function TokenList({ tokens, maxVisible }) {
   if (!tokens?.length) return <div className="empty">단어 정보가 없어요.</div>;
   const visible = maxVisible ? tokens.slice(0, maxVisible) : tokens;
@@ -160,6 +231,11 @@ function ExprItem({ item, categoryLabel }) {
       <div className="details-body">
         <div className="jp">{item.title}</div>
         <div className="muted" style={{ marginTop: 2 }}>{item.hira} · {item.kr}</div>
+        {item.ko && (
+          <div style={{ marginTop: 4, fontSize: 13, fontWeight: 600, color: '#3a6020' }}>
+            {item.ko}
+          </div>
+        )}
         {item.nuance && <div className="muted" style={{ marginTop: 4 }}>{item.nuance}</div>}
         <div style={{ marginTop: 6 }}>{(item.examTags || []).map((t, i) => <Chip key={i} text={t} />)}</div>
         <div className="speak-row"><SpeakBtn text={item.title} /></div>
@@ -293,6 +369,7 @@ function ResultBlock({ result, onSave }) {
         {result.koreanTranslation && <div className="answer-translation">{result.koreanTranslation}</div>}
         <div className="speak-row" style={{ justifyContent: 'center', marginTop: 12 }}>
           <SpeakBtn text={result.corrected} label="🔊 발음 듣기" />
+          <AutoLearnBtn result={result} />
           {onSave && <button className="tertiary" onClick={onSave} style={{ fontSize: 13 }}>💾 저장</button>}
         </div>
       </div>
@@ -706,7 +783,7 @@ export default function Home() {
                     fontSize: 11, color: '#bbb', background: '#f4f2ee',
                     border: '1px solid #e0dbd4', borderRadius: 6, padding: '3px 8px',
                     fontFamily: 'monospace', letterSpacing: 0.5,
-                  }}>v0.15</span>
+                  }}>v0.16</span>
                 </footer>
               </main>
             </div>
