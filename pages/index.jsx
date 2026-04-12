@@ -274,10 +274,23 @@ function DialogueItem({ dialogue }) {
         {(dialogue.turns || []).map((turn, i) => (
           <div className="dialogue-turn" key={i}>
             <div className="avatar" style={{ fontSize: 16, background: 'transparent', border: 'none' }}>{getRoleEmoji(turn.who)}</div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div className="turn-jp">{turn.jp}</div>
-              <div className="turn-sub">{turn.hira} · {turn.kr}</div>
-              <div className="turn-sub">{turn.ko}</div>
+              <div className="turn-sub" style={{ marginTop: 3 }}>{turn.hira}</div>
+              <div className="turn-sub">{turn.kr}</div>
+              {turn.ko && (
+                <div style={{
+                  marginTop: 6,
+                  paddingTop: 6,
+                  borderTop: '1px dashed rgba(47,44,40,0.15)',
+                  fontSize: 12,
+                  color: '#3a6020',
+                  fontWeight: 600,
+                  lineHeight: 1.5,
+                }}>
+                  {turn.ko}
+                </div>
+              )}
               <div className="speak-row"><SpeakBtn text={turn.jp} /></div>
             </div>
           </div>
