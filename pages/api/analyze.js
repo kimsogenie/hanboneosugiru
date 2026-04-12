@@ -28,10 +28,10 @@ Required JSON structure:
     {"jp": "word", "hira": "hiragana", "kr": "pronunciation", "meaning": "Korean meaning", "note": "usage note in Korean", "emoji": "단어 뜻을 나타내는 이모지 1개 (조사/접속사는 생략)", "commonForm": "현지인이 가장 많이 쓰는 표기 (한자/가나/카타카나 중 하나, 교정 문장과 동일하면 생략)"}
   ],
   "similar": [
-    {"title": "Japanese", "hira": "hiragana", "kr": "pronunciation", "nuance": "Korean nuance", "examTags": ["JLPT N5"], "breakdown": [{"jp":"","hira":"","kr":"","meaning":""}]}
+    {"title": "Japanese", "hira": "hiragana", "kr": "pronunciation", "ko": "자연스러운 한국어 번역", "nuance": "Korean nuance", "examTags": ["JLPT N5"], "breakdown": [{"jp":"","hira":"","kr":"","meaning":""}]}
   ],
   "situational": [
-    {"label": "situation in Korean", "title": "Japanese", "hira": "hiragana", "kr": "pronunciation", "examTags": ["JLPT N5"], "breakdown": [{"jp":"","hira":"","kr":"","meaning":""}]}
+    {"label": "situation in Korean", "title": "Japanese", "hira": "hiragana", "kr": "pronunciation", "ko": "자연스러운 한국어 번역", "examTags": ["JLPT N5"], "breakdown": [{"jp":"","hira":"","kr":"","meaning":""}]}
   ],
   "dialogues": [
     {"title": "title in Korean", "turns": [{"who":"A","jp":"Japanese","hira":"hiragana","kr":"pronunciation","ko":"Korean translation"}]}
